@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "cityapp"
+version = "0.1.0"
+description = ""
+authors = ["Kirill Sinitsin <ks850471@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = {extras = ["standard"], version = "^0.112.0"}
+alembic = "^1.13.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

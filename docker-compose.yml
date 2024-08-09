@@ -11,6 +11,17 @@ services:
       - "dbdata:/var/lib/postgresql/data"
 
 
+  test_db:
+    image: postgres
+    restart: always
+    ports:
+      - 8987:5432
+    environment:
+      POSTGRES_PASSWORD: kiruha
+      POSTGRES_USER: kiruha
+    volumes:
+      - "test_data:/var/lib/postgresql/data"
+
   pgadmin:
     image: dpage/pgadmin4
     restart: always
@@ -23,3 +34,4 @@ services:
 
 volumes:
   dbdata:
+  test_data:

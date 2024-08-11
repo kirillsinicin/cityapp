@@ -1,3 +1,6 @@
+import datetime
+
+
 def test_get_all_cities(client, create_city):
     response = client.get("/city/")
     assert response.status_code == 200
@@ -23,33 +26,77 @@ def test_create_shop(client, create_city, create_street):
     assert response.json()["id"] > 0
 
 
-# def test_get_shops(client, create_shop):
-#     response = client.get("/shop/")
-#     assert response.status_code == 200
-#     assert response.json() == [{
-#         "id": create_shop["id"],
-#         "name": create_shop["name"],
-#         "city": create_shop["city"].name,
-#         "street": create_shop["street"].name,
-#         "house": create_shop["house"],
-#         "time_open": create_shop["time_open"].strftime("%Z"),
-#         "time_close": create_shop["time_close"]
-#     }]
-#
-#
-# def test_get_shops_with_street():
-#     response = client.get("/shop/?street=2")
-#     assert response.status_code == 200
-#     assert response.json() == []
-#
-#
-# def test_get_shops_with_city():
-#     response = client.get("/shop/?city=2")
-#     assert response.status_code == 200
-#     assert response.json() == []
-#
-#
-# def test_get_shops_with_open():
-#     response = client.get("/shop/?open=false")
-#     assert response.status_code == 200
-#     assert response.json() == data_to_get_shops_where_open_false
+def test_get_shops(client, create_shop):
+    response = client.get("/shop/")
+    assert response.status_code == 200
+    assert response.json() == [{
+        "id": create_shop["id"],
+        "name": create_shop["name"],
+        "city": create_shop["city"].name,
+        "street": create_shop["street"].name,
+        "house": create_shop["house"],
+        "time_open": f"{create_shop["time_open"].hour}:{create_shop["time_open"].minute}:00Z",
+        "time_close": f"{create_shop["time_close"].hour}:{create_shop["time_close"].minute}:00Z"
+    }]
+
+
+def test_get_shops_with_street(client, create_shop):
+    response = client.get("/shop/?street=1")
+    assert response.status_code == 200
+    assert response.json() == [{
+        "id": create_shop["id"],
+        "name": create_shop["name"],
+        "city": create_shop["city"].name,
+        "street": create_shop["street"].name,
+        "house": create_shop["house"],
+        "time_open": f"{create_shop["time_open"].hour}:{create_shop["time_open"].minute}:00Z",
+        "time_close": f"{create_shop["time_close"].hour}:{create_shop["time_close"].minute}:00Z"
+    }]
+
+
+def test_get_shops_with_city(client, create_shop):
+    response = client.get("/shop/?city=1")
+    assert response.status_code == 200
+    assert response.json() == [{
+        "id": create_shop["id"],
+        "name": create_shop["name"],
+        "city": create_shop["city"].name,
+        "street": create_shop["street"].name,
+        "house": create_shop["house"],
+        "time_open": f"{create_shop["time_open"].hour}:{create_shop["time_open"].minute}:00Z",
+        "time_close": f"{create_shop["time_close"].hour}:{create_shop["time_close"].minute}:00Z"
+    }]
+
+
+def test_get_shops_with_open(client, create_shop):
+    response = client.get("/shop/?open=true")
+    assert response.status_code == 200
+    if datetime.datetime.now().time() != datetime.time(14, 27, 4, 808000, tzinfo=datetime.timezone.utc):
+        assert response.json() == []
+    else:
+        assert response.json() == [{
+            "id": create_shop["id"],
+            "name": create_shop["name"],
+            "city": create_shop["city"].name,
+            "street": create_shop["street"].name,
+            "house": create_shop["house"],
+            "time_open": f"{create_shop["time_open"].hour}:{create_shop["time_open"].minute}:00Z",
+            "time_close": f"{create_shop["time_close"].hour}:{create_shop["time_close"].minute}:00Z"
+        }]
+
+
+def test_get_shops_with_close(client, create_shop):
+    response = client.get("/shop/?open=false")
+    assert response.status_code == 200
+    if datetime.datetime.now().time() != datetime.time(14, 27, 4, 808000, tzinfo=datetime.timezone.utc):
+        assert response.json() == []
+    else:
+        assert response.json() == [{
+            "id": create_shop["id"],
+            "name": create_shop["name"],
+            "city": create_shop["city"].name,
+            "street": create_shop["street"].name,
+            "house": create_shop["house"],
+            "time_open": f"{create_shop["time_open"].hour}:{create_shop["time_open"].minute}:00Z",
+            "time_close": f"{create_shop["time_close"].hour}:{create_shop["time_close"].minute}:00Z"
+        }]

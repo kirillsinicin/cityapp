@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Body, Depends, Query
-from typing import Annotated, Sequence, cast
+from fastapi import APIRouter, Body, Depends, Query, HTTPException
+from typing import Annotated, Sequence
 from sqlalchemy.orm import Session
 from app.db import get_db
 from app.utils import cities_utils
@@ -9,15 +9,22 @@ import datetime
 
 city_router = APIRouter()
 
+task_exception = HTTPException(status_code=400, detail="400 для всех эндпоинтов")
+
 
 @city_router.get("/city/", response_model=list[GetAllCitiesResponse])
 def get_all_cities(db: Session = Depends(get_db)):
-    cities = cities_utils.get_cities(db)
+    try:
+        cities = cities_utils.get_cities(db)
+    except Exception:
+        raise task_exception
     return cities
 
 
 @city_router.get("/city/{city_id}/street", response_model=list[GetAllStreetsByCityResponse])
 def get_all_streets_by_city(city_id: int, db: Session = Depends(get_db)):
+    if type(city_id) is not int:
+        raise task_exception
     city_streets = cities_utils.get_streets_by_city(db, city_id=city_id)
     return city_streets
 

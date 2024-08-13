@@ -12,8 +12,8 @@ city_router = APIRouter()
 task_exception = HTTPException(status_code=400, detail="400 для всех эндпоинтов")
 
 
-@city_router.get("/city/", response_model=list[GetAllCitiesResponse])
-def get_all_cities(db: Session = Depends(get_db)):
+@city_router.get("/city/")
+def get_all_cities(db: Session = Depends(get_db)) -> list[GetAllCitiesResponse]:
     try:
         cities = cities_utils.get_cities(db)
     except Exception:
@@ -21,16 +21,16 @@ def get_all_cities(db: Session = Depends(get_db)):
     return cities
 
 
-@city_router.get("/city/{city_id}/street", response_model=list[GetAllStreetsByCityResponse])
-def get_all_streets_by_city(city_id: int, db: Session = Depends(get_db)):
+@city_router.get("/city/{city_id}/street")
+def get_all_streets_by_city(city_id: int, db: Session = Depends(get_db)) -> list[GetAllStreetsByCityResponse]:
     if type(city_id) is not int:
         raise task_exception
     city_streets = cities_utils.get_streets_by_city(db, city_id=city_id)
     return city_streets
 
 
-@city_router.post("/shop/", response_model=CreateShopResponse)
-def create_shop(shop: Annotated[CreateShopRequest, Body()], db: Session = Depends(get_db)):
+@city_router.post("/shop/")
+def create_shop(shop: Annotated[CreateShopRequest, Body()], db: Session = Depends(get_db)) -> CreateShopResponse:
     shop = cities_utils.create_shop(db, shop=shop)
     return CreateShopResponse(id=shop.id)
 

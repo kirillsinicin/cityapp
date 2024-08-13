@@ -65,23 +65,6 @@ def test_get_shops_with_city(client, create_shop):
     }]
 
 
-# def test_get_shops_with_open(client, create_shop):
-#     response = client.get("/shop/?open=true")
-#     assert response.status_code == 200
-#     if datetime.datetime.now().time() != datetime.time(14, 27, 4, 808000, tzinfo=datetime.timezone.utc):
-#         assert response.json() == []
-#     else:
-#         assert response.json() == [{
-#             "id": create_shop["id"],
-#             "name": create_shop["name"],
-#             "city": create_shop["city"].name,
-#             "street": create_shop["street"].name,
-#             "house": create_shop["house"],
-#             "time_open": f"{create_shop["time_open"].hour}:{create_shop["time_open"].minute}:00Z",
-#             "time_close": f"{create_shop["time_close"].hour}:{create_shop["time_close"].minute}:00Z"
-#         }]
-#
-#
 def test_get_shops_with_open(client, create_shop, patch_open_time):
     response = client.get("/shop/?open=true")
     assert response.status_code == 200

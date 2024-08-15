@@ -1,9 +1,7 @@
 import datetime
 
 from sqlalchemy import ForeignKey, String, Time
-from sqlalchemy.orm import relationship, Mapped, mapped_column, declarative_base
-
-# from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Mapped, declarative_base, mapped_column, relationship
 
 Base = declarative_base()
 
@@ -35,7 +33,11 @@ class Shop(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     street_id: Mapped[int] = mapped_column(ForeignKey("streets.id"), nullable=False)
     house: Mapped[str] = mapped_column(nullable=False)
-    time_open: Mapped[datetime.time] = mapped_column(Time(timezone=True), nullable=False)
-    time_close: Mapped[datetime.time] = mapped_column(Time(timezone=True), nullable=False)
+    time_open: Mapped[datetime.time] = mapped_column(
+        Time(timezone=True), nullable=False
+    )
+    time_close: Mapped[datetime.time] = mapped_column(
+        Time(timezone=True), nullable=False
+    )
 
     street: Mapped["Street"] = relationship(back_populates="street_shops")

@@ -1,21 +1,21 @@
-import app.utils.cities_utils
 import datetime
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+import app.utils.cities_utils
 from app import models
 from app.db import get_db
-import pytest
 
 SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://kiruha:kiruha@localhost:8987/kiruha"
+BROKEN_DATABASE_URL = "sqlite://"
 
 
 @pytest.fixture
 def engine():
-    return create_engine(
-        SQLALCHEMY_DATABASE_URL
-    )
+    return create_engine(SQLALCHEMY_DATABASE_URL)
 
 
 @pytest.fixture
@@ -30,10 +30,7 @@ def create_city(session):
     session.add(city)
     session.commit()
     session.refresh(city)
-    return {
-        "id": city.id,
-        "name": city.name
-    }
+    return {"id": city.id, "name": city.name}
 
 
 @pytest.fixture
@@ -56,7 +53,7 @@ def create_shop(session, create_city, create_street):
         street_id=create_street["id"],
         house="test_house",
         time_open=datetime.time(10, 10, tzinfo=datetime.timezone.utc),
-        time_close=datetime.time(21, 21, tzinfo=datetime.timezone.utc)
+        time_close=datetime.time(21, 21, tzinfo=datetime.timezone.utc),
     )
     session.add(shop)
     session.commit()
@@ -68,7 +65,7 @@ def create_shop(session, create_city, create_street):
         "street": shop.street,
         "house": shop.house,
         "time_open": shop.time_open,
-        "time_close": shop.time_close
+        "time_close": shop.time_close,
     }
 
 
@@ -79,7 +76,7 @@ def close_shop(session, create_city, create_street):
         street_id=create_street["id"],
         house="test_house",
         time_open=datetime.time(11, 10, tzinfo=datetime.timezone.utc),
-        time_close=datetime.time(11, 11, tzinfo=datetime.timezone.utc)
+        time_close=datetime.time(11, 11, tzinfo=datetime.timezone.utc),
     )
     session.add(shop)
     session.commit()
@@ -91,7 +88,7 @@ def close_shop(session, create_city, create_street):
         "street": shop.street,
         "house": shop.house,
         "time_open": shop.time_open,
-        "time_close": shop.time_close
+        "time_close": shop.time_close,
     }
 
 
@@ -120,7 +117,9 @@ def patch_open_time(monkeypatch):
     class OpenTime(datetime.datetime):
         @classmethod
         def now(cls, tz=None):
-            return datetime.datetime.now(datetime.UTC).replace(hour=14, minute=0, second=0)
+            return datetime.datetime.now(datetime.UTC).replace(
+                hour=14, minute=0, second=0
+            )
 
     monkeypatch.setattr(app.utils.cities_utils, "datetime", OpenTime)
 
@@ -131,6 +130,41 @@ def patch_close_time(monkeypatch):
 
         @classmethod
         def now(cls, tz=None):
-            return datetime.datetime.now(datetime.UTC).replace(hour=14, minute=0, second=0)
+            return datetime.datetime.now(datetime.UTC).replace(
+                hour=14, minute=0, second=0
+            )
 
     monkeypatch.setattr(app.utils.cities_utils, "datetime", CloseTime)
+
+
+@pytest.fixture
+def patch_engine():
+    return create_engine(BROKEN_DATABASE_URL)
+
+
+@pytest.fixture
+def patch_session(patch_engine):
+    TestingSessionLocal = sessionmaker(
+        autocommit=False, autoflush=False, bind=patch_engine
+    )
+    yield TestingSessionLocal()
+
+
+@pytest.fixture
+def patch_client(patch_engine, patch_session):
+    from app.main import app
+
+    # models.Base.metadata.create_all(bind=engine)
+
+    def get_test_db():
+        db = patch_session
+        try:
+            yield db
+        finally:
+            db.close()
+
+    app.dependency_overrides[get_db] = get_test_db
+    client = TestClient(app)
+    yield client
+
+    models.Base.metadata.drop_all(patch_engine)

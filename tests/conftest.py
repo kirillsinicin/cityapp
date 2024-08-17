@@ -10,7 +10,6 @@ from app import models
 from app.db import get_db
 
 SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://kiruha:kiruha@localhost:8987/kiruha"
-BROKEN_DATABASE_URL = "sqlite://"
 
 
 @pytest.fixture
@@ -135,36 +134,3 @@ def patch_close_time(monkeypatch):
             )
 
     monkeypatch.setattr(app.utils.cities_utils, "datetime", CloseTime)
-
-
-@pytest.fixture
-def patch_engine():
-    return create_engine(BROKEN_DATABASE_URL)
-
-
-@pytest.fixture
-def patch_session(patch_engine):
-    TestingSessionLocal = sessionmaker(
-        autocommit=False, autoflush=False, bind=patch_engine
-    )
-    yield TestingSessionLocal()
-
-
-@pytest.fixture
-def patch_client(patch_engine, patch_session):
-    from app.main import app
-
-    # models.Base.metadata.create_all(bind=engine)
-
-    def get_test_db():
-        db = patch_session
-        try:
-            yield db
-        finally:
-            db.close()
-
-    app.dependency_overrides[get_db] = get_test_db
-    client = TestClient(app)
-    yield client
-
-    models.Base.metadata.drop_all(patch_engine)

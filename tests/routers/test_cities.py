@@ -1,7 +1,6 @@
 import app.routers.cities
 
 validation_error_response = {"message": "Ошибка валидации"}
-
 city_app_error_response = {"message": "Какая-то ошибка"}
 
 
@@ -11,19 +10,12 @@ def test_get_all_cities(client, create_city):
     assert response.json() == [create_city]
 
 
-def test_asd(client, create_city, monkeypatch, session):
-    response = client.get("/city/")
-
+def test_get_all_cities_error(client, create_city, monkeypatch, session):
     def fake_get_cities(*args, **kwargs):
         raise Exception
 
     monkeypatch.setattr(app.routers.cities.cities_utils, "get_cities", fake_get_cities)
-    assert response.status_code == 200
-    assert response.json() == [create_city]
-
-
-def test_get_all_cities_error(patch_client):
-    response = patch_client.get("/city/")
+    response = client.get("/city/")
     assert response.status_code == 400
     assert response.json() == city_app_error_response
 
@@ -38,8 +30,14 @@ def test_get_all_streets_by_city(client, create_city, create_street):
     assert error_response.json() == validation_error_response
 
 
-def test_get_all_streets_by_city_error(patch_client):
-    response = patch_client.get("/city/1/street")
+def test_get_all_streets_by_city_error(client, create_city, create_street, monkeypatch):
+    def fake_get_streets_by_city(*args, **kwargs):
+        raise Exception
+
+    monkeypatch.setattr(
+        app.routers.cities.cities_utils, "get_streets_by_city", fake_get_streets_by_city
+    )
+    response = client.get(f"/city/{create_city["id"]}/street")
     assert response.status_code == 400
     assert response.json() == city_app_error_response
 
@@ -66,13 +64,19 @@ def test_create_shop(client, create_city, create_street):
     assert response.json() == validation_error_response
 
 
-def test_create_shop_error(patch_client):
-    response = patch_client.post(
+def test_create_shop_error(client, create_city, create_street, monkeypatch):
+    def fake_create_shop(*args, **kwargs):
+        raise Exception
+
+    monkeypatch.setattr(
+        app.routers.cities.cities_utils, "create_shop", fake_create_shop
+    )
+    response = client.post(
         "/shop/",
         json={
             "name": "string",
-            "city_id": 1,
-            "street_id": 1,
+            "city_id": create_city["id"],
+            "street_id": create_street["id"],
             "house": "test_house",
             "time_open": "14:27:04.808Z",
             "time_close": "14:27:04.808Z",
@@ -98,8 +102,14 @@ def test_get_shops(client, create_shop):
     ]
 
 
-def test_get_shops_error(patch_client):
-    response = patch_client.get("/shop/")
+def test_get_shops_error(client, monkeypatch):
+    def fake_get_shops_by_filter(*args, **kwargs):
+        raise Exception
+
+    monkeypatch.setattr(
+        app.routers.cities.cities_utils, "get_shops_by_filter", fake_get_shops_by_filter
+    )
+    response = client.get("/shop/")
     assert response.status_code == 400
     assert response.json() == city_app_error_response
 

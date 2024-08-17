@@ -1,4 +1,18 @@
 services:
+  api:
+    build:
+      context: .
+    container_name: fastapi-app
+    environment:
+      DATABASE_URL: "postgresql+psycopg2://kiruha:kiruha@postgres_db:5432/kiruha"
+    ports:
+      - '9090:80'
+    restart: "no"
+    depends_on:
+      postgres_db:
+        condition: service_started
+
+
   postgres_db:
     image: postgres
     restart: always
